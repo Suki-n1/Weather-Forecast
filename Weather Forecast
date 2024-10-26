@@ -1,0 +1,72 @@
+import tkinter as tk
+from tkinter import messagebox
+import requests
+
+# Replace with your actual API key
+API_KEY = "YOUR_API_KEY"
+BASE_URL = "http://api.openweathermap.org/data/2.5/weather"
+
+def get_weather():
+    country = country_entry.get()
+    city = city_entry.get()
+    
+    if not country or not city:
+        messagebox.showwarning("Input Error", "Please enter both country and city.")
+        return
+
+    # Make the API request
+    params = {"q": f"{city},{country}", "appid": API_KEY, "units": "metric"}
+    response = requests.get(BASE_URL, params=params)
+    
+    if response.status_code == 200:
+        data = response.json()
+        display_weather(data)
+    else:
+        messagebox.showerror("Error", "City not found or API request failed.")
+
+def display_weather(data):
+    city_name = data["name"]
+    country_code = data["sys"]["country"]
+    temp = data["main"]["temp"]
+    feels_like = data["main"]["feels_like"]
+    weather_desc = data["weather"][0]["description"]
+    humidity = data["main"]["humidity"]
+    wind_speed = data["wind"]["speed"]
+
+    weather_text = (
+        f"City: {city_name}, {country_code}\n"
+        f"Temperature: {temp}°C\n"
+        f"Feels Like: {feels_like}°C\n"
+        f"Weather: {weather_desc.capitalize()}\n"
+        f"Humidity: {humidity}%\n"
+        f"Wind Speed: {wind_speed} m/s\n"
+    )
+
+    weather_display.config(state="normal")
+    weather_display.delete(1.0, tk.END)
+    weather_display.insert(tk.END, weather_text)
+    weather_display.config(state="disabled")
+
+# Setting up the main window
+root = tk.Tk()
+root.title("Weather Forecast")
+root.geometry("400x300")
+
+# Creating and placing the input fields and labels
+tk.Label(root, text="Country Code (e.g., US)").pack(pady=5)
+country_entry = tk.Entry(root)
+country_entry.pack(pady=5)
+
+tk.Label(root, text="City Name").pack(pady=5)
+city_entry = tk.Entry(root)
+city_entry.pack(pady=5)
+
+# Fetch weather button
+fetch_button = tk.Button(root, text="Get Weather", command=get_weather)
+fetch_button.pack(pady=10)
+
+# Weather display field
+weather_display = tk.Text(root, height=10, width=45, state="disabled", bg="light yellow", font=("Arial", 10))
+weather_display.pack(pady=10)
+
+root.mainloop()
